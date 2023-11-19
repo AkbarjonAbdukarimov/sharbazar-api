@@ -2,9 +2,13 @@
   "name": "sharbazar-v2",
   "module": "index.ts",
   "scripts": {
-    "start": "tsc && nodemon dist/index",
+    "start": " nodemon build/index",
     "dev": "concurrently  \"tsc -w\" \"nodemon build/index.js\"",
-    "bun": "bun --hot src/index.ts"
+    "bun": "bun --hot src/index.ts",
+    "build":"tsc"
+  },
+  "nodemonConfig": {
+    "ignore": ["data/*.json"]
   },
   "devDependencies": {
     "bun-types": "latest"
