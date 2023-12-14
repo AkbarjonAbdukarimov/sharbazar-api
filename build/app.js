@@ -15,7 +15,7 @@ app.use(express_1.default.json());
 app.use((0, cors_1.default)({ origin: "*" }));
 app.use("/api/products", productsRoutes_1.default);
 app.use("/api/categories", categoryRoutes_1.default);
-app.use('/api/updatedb', dbRoutes_1.default);
+app.use("/api/updatedb", dbRoutes_1.default);
 //@ts-ignore
 app.use((err, req, res, next) => {
     console.log(err, err instanceof BaseError_1.default);

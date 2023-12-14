@@ -43,42 +43,61 @@ const Parser_1 = __importDefault(require("../utils/dataParser/Parser"));
 const path = __importStar(require("path"));
 const Category_1 = __importDefault(require("../Models/Category"));
 const destination = path.join(process.cwd(), "data");
-const storage = multer_1.default.diskStorage({
-    destination,
-    filename: function (req, file, cb) {
-        const splited = file.originalname.split(".");
-        cb(null, "data." + splited[splited.length - 1]);
-    },
-});
-const upload = (0, multer_1.default)({ storage: storage });
-const dbRoutes = (0, express_1.Router)();
 const fileType = [
     "application/vnd.ms-excel",
     "application/vnd.ms-excel.sheet.macroEnabled.12",
     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
 ];
+const storage = multer_1.default.diskStorage({
+    destination,
+    filename: function (req, file, cb) {
+        const splited = file.originalname.split(".");
+        if (!fileType.find((f) => f === file.mimetype)) {
+            throw new BadRequestError_1.default("Please Upload File in XLSX format");
+        }
+        cb(null, "data." + splited[splited.length - 1]);
+    },
+});
+const upload = (0, multer_1.default)({
+    storage: storage,
+});
+const dbRoutes = (0, express_1.Router)();
 dbRoutes.post("/", upload.single("file"), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     if (!req.file) {
         throw new BadRequestError_1.default("Please Upload Excel File to Update Database");
     }
-    if (!fileType.find((f) => f === req.file.mimetype)) {
-        throw new BadRequestError_1.default("Please Upload File in XLSX format");
+    const { lang } = req.body;
+    if (!lang) {
+        throw new BadRequestError_1.default("Please Select File Language");
     }
-    const result = yield Parser_1.default.makeJson();
-    const jsonCats = [...Parser_1.default.getCategories()].map(i => { return { name: i }; });
-    const cats = yield Category_1.default.find();
-    try {
-        const Cats = yield Category_1.default.insertMany([...cats, ...jsonCats,]);
-        res.send({ dbCategories: Cats });
+    Parser_1.default.makeJson();
+    const existingCats = yield Category_1.default.find();
+    const jsonCats = Parser_1.default.getCategories();
+    let temp = [];
+    if (existingCats.length === 0) {
+        jsonCats.forEach((c) => {
+            const item = { name: {} };
+            item.name[lang] = c;
+            temp.push(item);
+        });
+        const insetred = yield Category_1.default.insertMany(temp);
+        res.send(insetred);
+        return;
     }
-    catch (error) {
-        if (error.code && error.code === 11000) {
-            res.send({ dbCategories: [] });
+    jsonCats.forEach((c) => {
+        const isNew = existingCats.find((C) => {
+            if (C.name[lang] && C.name[lang] === c) {
+                return C;
+            }
+        });
+        if (!isNew) {
+            const item = { name: {} };
+            item.name[lang] = c;
+            temp.push(item);
         }
-        else {
-            throw error;
-        }
-    }
-    //res.send(jsonCats)
+    });
+    const insetred = yield Category_1.default.insertMany(temp);
+    res.send(insetred);
+    return;
 }));
 exports.default = dbRoutes;

@@ -7,51 +7,57 @@ import IProduct from "../../Interface/IProduct";
 import NotFoundError from "../../Errors/NotFoundError";
 import BadRequestError from "../../Errors/BadRequestError";
 export default class DataParser {
-  static makeJson(): Promise<boolean> {
-    return new Promise((resolve, reject) => {
-      const root=process.cwd()
-      try {
-        console.log("Reading xlsx file");
-        let workbook:XLSX.WorkBook=XLSX.readFile(path.join(root,'data','data.xlsx'));
-         
+  static makeJson(): void {
+    const root = process.cwd();
+    //try {
+    console.log("Reading xlsx file");
+    let workbook: XLSX.WorkBook = XLSX.readFile(
+      path.join(root, "data", "data.xlsx")
+    );
 
-        const sheetName = workbook.SheetNames[0];
-        const sheet = workbook.Sheets[sheetName];
+    const sheetName = workbook.SheetNames[0];
+    const sheet = workbook.Sheets[sheetName];
 
-        // Convert the sheet to JSON with custom column names
-        const jsonData = XLSX.utils
-          .sheet_to_json(sheet, { header: 2, raw: false })
+    // Convert the sheet to JSON with custom column names
+    const jsonData = XLSX.utils
+      .sheet_to_json(sheet, { header: 2, raw: false })
+      //@ts-ignore
+      .map((row: object) => {
+        const newRow = {};
+        for (const key in row) {
           //@ts-ignore
-          .map((row: object) => {
-            const newRow = {};
-            for (const key in row) {
-              //@ts-ignore
 
-              if (columnMapping[key]) {
-                //@ts-ignore
+          if (columnMapping[key]) {
+            //@ts-ignore
 
-                newRow[columnMapping[key]] = row[key];
-              }
-            }
-            return newRow;
-          });
+            newRow[columnMapping[key]] = row[key];
+          }
+        }
+        return newRow;
+      });
 
-        // Save the JSON data to a file
-        const jsonOutput = JSON.stringify(jsonData, null, 2);
-        fs.writeFileSync(path.join(root,"data","data.json"), jsonOutput);
-        console.log(`Created JSON file at ${process.cwd()}/data/data.json`);
-        resolve(true);
-      } catch (error) {
-        console.log(error.message)
-        reject(error);
+    // Save the JSON data to a file
+    const jsonOutput = JSON.stringify(jsonData, null, 2);
+    fs.writeFileSync(path.join(root, "data", "data.json"), jsonOutput);
+    console.log(`Created JSON file at ${process.cwd()}/data/data.json`);
+  }
+
+  static getCategories(): Map<string, string[]> {
+    let cats: Map<string, string[]> = new Map<string, string[]>();
+    const prs = this.readProducts();
+    prs.forEach((p) => {
+      if (p.category) {
+        let c = p.category.toUpperCase();
+        const temp = cats.get(c);
+        if (!temp) {
+          cats.set(c, [p.code]);
+        } else {
+          temp.push(p.code);
+        }
       }
     });
-  }
-  static getCategories(): Set<string> {
-    const categories = new Set<string>();
-    const prs = this.readProducts();
-    prs.forEach(p=>p.category&&categories.add(p.category.toUpperCase()))
-    return categories;
+
+    return cats;
   }
   static readProducts(): IProduct[] {
     try {

@@ -31,7 +31,7 @@ categoryRoute.post("/new", upload.single("image"), (req, res) => __awaiter(void 
     if (!req.file)
         throw new BadRequestError_1.default("Image is required");
     const { name, products } = req.body;
-    const category = Category_1.default.build({ name, products });
+    const category = Category_1.default.build({ name: Object.assign({}, req.body), products });
     const r = yield MediaManager_1.default.uploadFile(req.file, category.id);
     category.icon = Object.assign({}, r);
     yield category.save();

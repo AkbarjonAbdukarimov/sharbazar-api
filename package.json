@@ -5,7 +5,7 @@
     "start": " nodemon build/index",
     "dev": "concurrently  \"tsc -w\" \"nodemon build/index.js\"",
     "bun": "bun --hot src/index.ts",
-    "build":"tsc"
+    "build": "tsc"
   },
   "nodemonConfig": {
     "ignore": ["data/*.json"]

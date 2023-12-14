@@ -11,14 +11,14 @@ const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 categoryRoute.get("/", async (req, res) => {
   const categories = await Category.find();
-  const names= DataParser.getCategories()
-  res.send(categories );
+  const names = DataParser.getCategories();
+  res.send(categories);
 });
 
 categoryRoute.post("/new", upload.single("image"), async (req, res) => {
   if (!req.file) throw new BadRequestError("Image is required");
   const { name, products } = req.body;
-  const category = Category.build({ name, products });
+  const category = Category.build({ name: { ...req.body }, products });
   const r = await MediaManager.uploadFile(req.file, category.id);
   category.icon = { ...r };
   await category.save();

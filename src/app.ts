@@ -11,7 +11,7 @@ app.use(cors({ origin: "*" }));
 
 app.use("/api/products", productRoute);
 app.use("/api/categories", categoryRoute);
-app.use('/api/updatedb',dbRoutes)
+app.use("/api/updatedb", dbRoutes);
 //@ts-ignore
 app.use((err, req, res, next) => {
   console.log(err, err instanceof BaseError);
@@ -22,6 +22,6 @@ app.use((err, req, res, next) => {
     res.status(err.statusCode).send({ errors: err.formatError() });
     return;
   }
-  res.status(500).send({ errors: [{message:err.message}] });
+  res.status(500).send({ errors: [{ message: err.message }] });
 });
 export default app;

@@ -15,12 +15,14 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = __importDefault(require("mongoose"));
 const app_1 = __importDefault(require("./app"));
 const dotenv_1 = __importDefault(require("dotenv"));
+const Parser_1 = __importDefault(require("./utils/dataParser/Parser"));
 dotenv_1.default.config();
 const port = process.env.PORT;
-const mongo = process.env.MONGO;
+const mongo = process.env.MONGOL;
 function Start() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
+            Parser_1.default.getCategories();
             yield mongoose_1.default.connect(mongo);
             console.log("Database connected");
             app_1.default.listen(port, () => {
